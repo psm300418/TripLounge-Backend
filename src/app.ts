@@ -3,6 +3,7 @@ import express from "express";
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/notFound.middleware.js";
+import { postRouter } from "./modules/post/post.route.js";
 
 export const app = express();
 
@@ -17,6 +18,8 @@ app.get("/health", (_req, res) => {
     },
   });
 });
+
+app.use("/posts", postRouter); //게시글 라우터
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
