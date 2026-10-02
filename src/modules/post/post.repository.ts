@@ -19,6 +19,7 @@ export class PostRepository {
 
     // DB 저장 실패하면 에러 
     if (error || !data) {
+      console.error("Supabase Error Details:", error);
       throw new AppError(500, "POST_CREATE_FAILED", "게시글 생성에 실패했습니다.");
     }
 
