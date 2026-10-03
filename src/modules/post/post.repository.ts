@@ -25,6 +25,29 @@ export class PostRepository {
 
     return data;
   }
+
+
+  // 이미지 업로드
+  async uploadImageToStorage(fileName: string, fileBuffer: Buffer, mimeType: string): Promise<string> {
+    const { error } = await supabase.storage
+      .from("post-images")
+      .upload(fileName, fileBuffer, {
+        contentType: mimeType,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Storage Upload Error:", error);
+      throw new AppError(500, "IMAGE_UPLOAD_FAILED", "이미지 업로드에 실패했습니다.");
+    }
+
+    // URL 가져오기
+    const { data } = supabase.storage
+      .from("post-images")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  }
 }
 
 export const postRepository = new PostRepository();

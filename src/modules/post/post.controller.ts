@@ -22,6 +22,21 @@ export class PostController {
       data: newPost,
     });
   };
+
+  // 이미지 업로드 
+  uploadImage = async (req: Request, res: Response): Promise<void> => {
+    // multer가 담아준 파일 꺼내기
+    const file = req.file;
+    // 업로드 후 URL 받기
+    const imageUrl = await postService.uploadImage(file);
+    // 프론트엔드에 URL 돌려주기
+    res.status(201).json({
+      success: true,
+      data: {
+        imageUrl,
+      },
+    });
+  };
 }
 
 export const postController = new PostController();
