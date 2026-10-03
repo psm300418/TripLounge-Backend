@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS posts CASCADE;
 
 -- 공개범위 Enum 타입 생성 (이미 있으면 재사용)
 DO $$ BEGIN
-    CREATE TYPE post_visibility AS ENUM ('PUBLIC', 'FRIENDS', 'PRIVATE');
+    CREATE TYPE post_visibility AS ENUM ('PUBLIC', 'FRIENDS', 'MEMBERS_ONLY', 'PRIVATE');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
