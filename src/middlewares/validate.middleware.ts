@@ -1,41 +1,18 @@
-import type { RequestHandler } from "express";
-import type { ZodType } from "zod";
-
-import { AppError } from "./error.middleware.js";
-
-type RequestSchemas = {
-  body?: ZodType;
-  params?: ZodType;
-  query?: ZodType;
-};
+import { NextFunction, Request, Response } from 'express';
+import { ZodError, ZodSchema } from 'zod';
+import { AppError } from '../utils/appError';
 
 export const validate =
-  (schemas: RequestSchemas): RequestHandler =>
-  (req, _res, next) => {
-    const result = {
-      body: schemas.body?.safeParse(req.body),
-      params: schemas.params?.safeParse(req.params),
-      query: schemas.query?.safeParse(req.query),
-    };
-
-    const hasError = Object.values(result).some(
-      (validationResult) => validationResult && !validationResult.success,
-    );
-
-    if (hasError) {
-      next(new AppError(400, "INVALID_REQUEST", "Invalid request."));
-      return;
+  (schema: ZodSchema) => (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      req.body = schema.parse(req.body);
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const message = error.issues[0]?.message ?? '잘못된 요청입니다.';
+        next(new AppError(400, 'INVALID_REQUEST', message));
+        return;
+      }
+      next(error);
     }
-
-    if (result.body?.success) {
-      req.body = result.body.data;
-    }
-    if (result.params?.success) {
-      req.params = result.params.data as typeof req.params;
-    }
-    if (result.query?.success) {
-      req.query = result.query.data as typeof req.query;
-    }
-
-    next();
   };
