@@ -23,3 +23,10 @@ postRouter.post(
   upload.single("image"),         
   asyncHandler(postController.uploadImage)
 );
+
+// GET /posts/:id 게시글 조회
+postRouter.get(
+  "/:id",
+  authMiddleware,
+  asyncHandler(postController.getPost)
+);

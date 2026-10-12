@@ -104,6 +104,49 @@ export class PostRepository {
 
     return data.publicUrl;
   }
+
+  // 게시글 테이블 4개 묶어서 한번에 조회
+  async findPostById(postId: number) {
+    const { data: post, error } = await supabase
+      .from("posts")
+      .select(`
+        id,
+        user_id,
+        start_date,
+        end_date,
+        visibility,
+        created_at,
+        updated_at,
+        post_members (
+          user_id
+        ),
+        post_days (
+          id,
+          day_number,
+          date,
+          title,
+          content,
+          post_photos (
+            id,
+            image_url,
+            taken_at,
+            place_name,
+            address,
+            latitude,
+            longitude,
+            order_index
+          )
+        )
+      `)
+      .eq("id", postId)
+      .single();
+
+    if (error || !post) {
+      return null;
+    }
+
+    return post;
+  }
 }
 
 export const postRepository = new PostRepository();

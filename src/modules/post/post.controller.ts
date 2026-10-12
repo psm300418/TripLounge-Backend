@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { postService } from "./post.service.js";
 import type { CreatePostInput } from "./post.schema.js";
+import { AppError } from "../../middlewares/error.middleware.js";
 
 export class PostController {
 
@@ -32,6 +33,22 @@ export class PostController {
     res.status(201).json({
       success: true,
       data: result,
+    });
+  };
+
+  // 게시글 조회 요청 
+  getPost = async (req: Request, res: Response): Promise<void> => {
+    const postId = Number(req.params.id);
+
+    if (Number.isNaN(postId)) {
+      throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
+    }
+
+    const post = await postService.getPostById(postId);
+
+    res.status(200).json({
+      success: true,
+      data: post,
     });
   };
 }

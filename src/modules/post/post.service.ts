@@ -23,6 +23,7 @@ export class PostService {
     return await postRepository.createPost(userId, input);
   }
   
+
   // 이미지 업로드 + 사진 메타데이터 추출
   async uploadImage(file?: Express.Multer.File): Promise<{
     imageUrl: string;
@@ -33,6 +34,7 @@ export class PostService {
     if (!file) {
       throw new AppError(400, "INVALID_REQUEST", "업로드할 이미지 파일이 필요합니다.");
     }
+
     // EXIF 메타데이터 추출 
     let takenAt: string | undefined;
     let latitude: number | undefined;
@@ -55,6 +57,7 @@ export class PostService {
     } catch {
       // EXIF가 없는 사진이거나 파싱 실패해도 업로드는 계속 진행
     }
+
     // 파일명 중복 방지
     const fileExtension = path.extname(file.originalname) || ".jpg";
     const uniqueFileName = `${Date.now()}_${randomUUID()}${fileExtension}`;
@@ -66,6 +69,18 @@ export class PostService {
     );
     
     return { imageUrl, takenAt, latitude, longitude };
+  }
+
+
+  // 게시글 조회
+  async getPostById(postId: number) {
+    const post = await postRepository.findPostById(postId);
+
+    if (!post) {
+      throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
+    }
+
+    return post;
   }
 } 
 
