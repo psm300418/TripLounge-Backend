@@ -25,16 +25,13 @@ export class PostController {
 
   // 이미지 업로드 
   uploadImage = async (req: Request, res: Response): Promise<void> => {
-    // multer가 담아준 파일 꺼내기
     const file = req.file;
-    // 업로드 후 URL 받기
-    const imageUrl = await postService.uploadImage(file);
-    // 프론트엔드에 URL 돌려주기
+    // Service에서 URL + 메타데이터 받기
+    const result = await postService.uploadImage(file);
+
     res.status(201).json({
       success: true,
-      data: {
-        imageUrl,
-      },
+      data: result,
     });
   };
 }

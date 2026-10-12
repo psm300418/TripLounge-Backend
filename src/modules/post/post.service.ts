@@ -22,22 +22,51 @@ export class PostService {
 
     return await postRepository.createPost(userId, input);
   }
-
-  // 이미지 업로드
-  async uploadImage(file?: Express.Multer.File): Promise<string> {
+  
+  // 이미지 업로드 + 사진 메타데이터 추출
+  async uploadImage(file?: Express.Multer.File): Promise<{
+    imageUrl: string;
+    takenAt?: string;
+    latitude?: number;
+    longitude?: number;
+  }> {
     if (!file) {
       throw new AppError(400, "INVALID_REQUEST", "업로드할 이미지 파일이 필요합니다.");
     }
+    // EXIF 메타데이터 추출 
+    let takenAt: string | undefined;
+    let latitude: number | undefined;
+    let longitude: number | undefined;
 
+    try {
+      const exifr = await import("exifr");
+      const [exif, gps] = await Promise.all([
+        exifr.default.parse(file.buffer).catch(() => null),
+        exifr.default.gps(file.buffer).catch(() => null),
+      ]);
+
+      if (exif?.DateTimeOriginal) {
+        takenAt = new Date(exif.DateTimeOriginal).toISOString();
+      }
+      if (gps) {
+        latitude = gps.latitude;
+        longitude = gps.longitude;
+      }
+    } catch {
+      // EXIF가 없는 사진이거나 파싱 실패해도 업로드는 계속 진행
+    }
+    // 파일명 중복 방지
     const fileExtension = path.extname(file.originalname) || ".jpg";
     const uniqueFileName = `${Date.now()}_${randomUUID()}${fileExtension}`;
-
-    return await postRepository.uploadImageToStorage(
+    // Storage 업로드 후 URL 받기
+    const imageUrl = await postRepository.uploadImageToStorage(
       uniqueFileName,
       file.buffer,
       file.mimetype
     );
+    
+    return { imageUrl, takenAt, latitude, longitude };
   }
-}
+} 
 
 export const postService = new PostService();
