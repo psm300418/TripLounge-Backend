@@ -147,6 +147,19 @@ export class PostRepository {
 
     return post;
   }
+
+  // 게시글 삭제 
+  async deletePostById(postId: number) {
+    const { error } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", postId);
+
+    if (error) {
+      throw new AppError(500, "POST_DELETE_FAILED", "게시글 삭제에 실패했습니다.");
+    }
+  }
+  
 }
 
 export const postRepository = new PostRepository();

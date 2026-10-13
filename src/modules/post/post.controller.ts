@@ -5,7 +5,7 @@ import { AppError } from "../../middlewares/error.middleware.js";
 
 export class PostController {
 
-  // 게시글 작성 요청 처리
+  // 게시글 작성 요청
   createPost = async (req: Request, res: Response): Promise<void> => {
     // 클라이언트가 보낸 데이터 꺼내기 
     const body = req.body as CreatePostInput;
@@ -51,6 +51,23 @@ export class PostController {
       data: post,
     });
   };
+
+  // 게시글 삭제 요청
+  deletePost = async (req: Request, res: Response): Promise<void> => {
+    const postId = Number(req.params.id);
+
+    if (Number.isNaN(postId)) {
+      throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
+    }
+
+    await postService.deletePost(postId);
+
+    res.status(200).json({
+      success: true,
+      data: null,
+    });
+  };
+  
 }
 
 export const postController = new PostController();

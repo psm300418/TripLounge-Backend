@@ -8,7 +8,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 
 export const postRouter = Router();
 
-// POST /posts 게시글 작성
+// POST 요청 /posts 게시글 작성
 postRouter.post(
   "/",
   authMiddleware,                        
@@ -16,7 +16,7 @@ postRouter.post(
   asyncHandler(postController.createPost) 
 );
 
-// POST /posts/images 이미지 단건 업로드
+// POST 요청 /posts/images 이미지 단건 업로드
 postRouter.post(
   "/images",
   authMiddleware,                 
@@ -24,9 +24,16 @@ postRouter.post(
   asyncHandler(postController.uploadImage)
 );
 
-// GET /posts/:id 게시글 조회
+// GET 요청 /posts/:id 게시글 조회
 postRouter.get(
   "/:id",
   authMiddleware,
   asyncHandler(postController.getPost)
+);
+
+// DELETE 요청 /posts/:id (게시글 삭제)
+postRouter.delete(
+  "/:id",
+  authMiddleware,
+  asyncHandler(postController.deletePost)
 );

@@ -82,6 +82,22 @@ export class PostService {
 
     return post;
   }
+
+  // 게시글 삭제
+  async deletePost(postId: number) {
+    const post = await postRepository.findPostById(postId);
+    if (!post) {
+      throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
+    }
+
+    // 로그인 연동 완료 후 인증 추가
+    // if (post.user_id !== userId) {
+    //   throw new AppError(403, "FORBIDDEN", "본인의 게시글만 삭제할 수 있습니다.");
+    // }
+
+    await postRepository.deletePostById(postId);
+  }
+
 } 
 
 export const postService = new PostService();
