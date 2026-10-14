@@ -29,4 +29,15 @@ export const createPostSchema = z.object({
   days: z.array(daySchema).min(1, "최소 1일치 일기가 필요합니다."),
 });
 
+// 게시글 수정 스키마 
+export const updatePostSchema = z.object({
+  startDate: z.string().date("YYYY-MM-DD 형식이 필요합니다.").optional(),
+  endDate: z.string().date("YYYY-MM-DD 형식이 필요합니다.").optional(),
+  visibility: z.enum(["PUBLIC", "FRIENDS", "MEMBERS_ONLY", "PRIVATE"]).optional(),
+  memberIds: z.array(z.string().uuid()).optional(),
+  days: z.array(daySchema).min(1, "수정 시 최소 1일치 일기가 필요합니다.").optional(),
+});
+
+export type UpdatePostInput = z.infer<typeof updatePostSchema>;
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { postRepository } from "./post.repository.js";
 import { AppError } from "../../middlewares/error.middleware.js";
-import type { CreatePostInput } from "./post.schema.js";
+import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 
 export class PostService {
 
@@ -23,6 +23,7 @@ export class PostService {
     return await postRepository.createPost(userId, input);
   }
   
+
 
   // 이미지 업로드 + 사진 메타데이터 추출
   async uploadImage(file?: Express.Multer.File): Promise<{
@@ -72,6 +73,7 @@ export class PostService {
   }
 
 
+
   // 게시글 조회
   async getPostById(postId: number) {
     const post = await postRepository.findPostById(postId);
@@ -82,6 +84,8 @@ export class PostService {
 
     return post;
   }
+
+
 
   // 게시글 삭제
   async deletePost(postId: number) {
@@ -96,6 +100,38 @@ export class PostService {
     // }
 
     await postRepository.deletePostById(postId);
+  }
+
+
+
+  // 게시글 수정
+  async updatePost(postId: number, input: UpdatePostInput) {
+    const post = await postRepository.findPostById(postId);
+    if (!post) {
+      throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
+    }
+
+    // 로그인 연동 완료 후 인증 추가
+    // if (post.user_id !== userId) {
+    //   throw new AppError(403, "FORBIDDEN", "본인의 게시글만 수정할 수 있습니다.");
+    // }
+
+    const startDate = input.startDate || post.start_date;
+    const endDate = input.endDate || post.end_date;
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        throw new AppError(400, "INVALID_DATE_RANGE", "종료일은 시작일 이후여야 합니다.");
+      }
+      if (diffDays > 30) {
+        throw new AppError(400, "EXCEED_MAX_DAYS", "여행 기간은 최대 30일까지 가능합니다.");
+      }
+    }
+
+    return await postRepository.updatePost(postId, input);
   }
 
 } 

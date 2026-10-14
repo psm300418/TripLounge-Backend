@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { postController } from "./post.controller.js";
-import { createPostSchema } from "./post.schema.js";
+import { createPostSchema, updatePostSchema } from "./post.schema.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { upload } from "../../middlewares/upload.middleware.js";
@@ -8,7 +8,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 
 export const postRouter = Router();
 
-// POST 요청 /posts 게시글 작성
+// POST 요청 /posts (게시글 작성)
 postRouter.post(
   "/",
   authMiddleware,                        
@@ -16,7 +16,7 @@ postRouter.post(
   asyncHandler(postController.createPost) 
 );
 
-// POST 요청 /posts/images 이미지 단건 업로드
+// POST 요청 /posts/images (이미지 단건 업로드)
 postRouter.post(
   "/images",
   authMiddleware,                 
@@ -24,7 +24,7 @@ postRouter.post(
   asyncHandler(postController.uploadImage)
 );
 
-// GET 요청 /posts/:id 게시글 조회
+// GET 요청 /posts/:id (게시글 조회)
 postRouter.get(
   "/:id",
   authMiddleware,
@@ -36,4 +36,12 @@ postRouter.delete(
   "/:id",
   authMiddleware,
   asyncHandler(postController.deletePost)
+);
+
+// PATCH 요청 /posts/:id (게시글 수정)
+postRouter.patch(
+  "/:id",
+  authMiddleware,
+  validate({ body: updatePostSchema }),
+  asyncHandler(postController.updatePost)
 );

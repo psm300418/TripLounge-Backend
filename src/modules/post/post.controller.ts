@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { postService } from "./post.service.js";
-import type { CreatePostInput } from "./post.schema.js";
+import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 import { AppError } from "../../middlewares/error.middleware.js";
 
 export class PostController {
@@ -24,6 +24,8 @@ export class PostController {
     });
   };
 
+
+
   // 이미지 업로드 
   uploadImage = async (req: Request, res: Response): Promise<void> => {
     const file = req.file;
@@ -35,6 +37,8 @@ export class PostController {
       data: result,
     });
   };
+
+
 
   // 게시글 조회 요청 
   getPost = async (req: Request, res: Response): Promise<void> => {
@@ -52,6 +56,8 @@ export class PostController {
     });
   };
 
+
+
   // 게시글 삭제 요청
   deletePost = async (req: Request, res: Response): Promise<void> => {
     const postId = Number(req.params.id);
@@ -68,6 +74,25 @@ export class PostController {
     });
   };
   
+
+
+  // 게시글 수정 요청
+  updatePost = async (req: Request, res: Response): Promise<void> => {
+    const postId = Number(req.params.id);
+
+    if (Number.isNaN(postId)) {
+      throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
+    }
+
+    const body = req.body as UpdatePostInput;
+    const updatedPost = await postService.updatePost(postId, body);
+
+    res.status(200).json({
+      success: true,
+      data: updatedPost,
+    });
+  };
+
 }
 
 export const postController = new PostController();
