@@ -1,12 +1,16 @@
-import { Router } from 'express';
-import { validate } from '../../middlewares/validate.middleware';
-import { asyncHandler } from '../../utils/asyncHandler';
-import { authController } from './auth.controller';
-import { signUpSchema } from './auth.schema';
-
-const authRouter = Router();
-
-// 인증이 필요하지 않은 API: Route → Validation → Controller
-authRouter.post('/signup', validate(signUpSchema), asyncHandler(authController.signUp));
-
-export default authRouter;
+import { Router } from "express";
+import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { authController } from "./auth.controller.js";
+import { providerSchema, callbackSchema, refreshSchema } from "./auth.schema.js";
+import { rateLimit } from "../../middlewares/rateLimit.middleware.js";
+import { authWebRouter } from "./auth.web.route.js";
+export const authRouter = Router();
+authRouter.use(rateLimit(30, 60000));
+authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
+authRouter.use("/web", authWebRouter);
+authRouter.get("/oauth/:provider", validate({ params: providerSchema }), asyncHandler(authController.start));
+authRouter.post("/sessions", validate({ body: callbackSchema }), asyncHandler(authController.callback));
+authRouter.post("/sessions/refresh", validate({ body: refreshSchema }), asyncHandler(authController.refresh));
+authRouter.delete("/sessions/current", authMiddleware, asyncHandler(authController.logout));

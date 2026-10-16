@@ -1,39 +1,24 @@
-import bcrypt from 'bcrypt';
-import { AppError } from '../../utils/appError';
-import { authRepository, UserRow } from './auth.repository';
-import { SignUpInput } from './auth.schema';
+import type { Session } from "@supabase/supabase-js";
+import { authRepository, type AuthRepository } from "./auth.repository.js";
+import type { SocialProvider } from "./auth.schema.js";
+import { sealStorage, openStorage } from "./auth.cookie.js";
 
-const SALT_ROUNDS = 10;
-
-export interface SignUpResult {
-  id: string;
-  email: string;
-  nickname: string;
-  createdAt: string;
-}
-
-const toSignUpResult = (user: UserRow): SignUpResult => ({
-  id: user.id,
-  email: user.email,
-  nickname: user.nickname,
-  createdAt: user.created_at,
+const sessionData = (session: Session) => ({
+  accessToken: session.access_token, refreshToken: session.refresh_token,
+  expiresAt: session.expires_at, tokenType: session.token_type,
+  user: { id: session.user.id, email: session.user.email },
 });
-
-export const authService = {
-  async signUp({ email, password, nickname }: SignUpInput): Promise<SignUpResult> {
-    const existingEmailUser = await authRepository.findUserByEmail(email);
-    if (existingEmailUser) {
-      throw new AppError(409, 'ALREADY_EMAIL', '이미 가입된 이메일입니다.');
-    }
-
-    const existingNicknameUser = await authRepository.findUserByNickname(nickname);
-    if (existingNicknameUser) {
-      throw new AppError(409, 'ALREADY_NICKNAME', '이미 사용 중인 닉네임입니다.');
-    }
-
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await authRepository.createUser({ email, passwordHash, nickname });
-
-    return toSignUpResult(user);
-  },
-};
+export class AuthService {
+  constructor(private readonly repository: AuthRepository = authRepository) {}
+  async start(provider: SocialProvider) {
+    const storage: Record<string, string> = {};
+    const url = await this.repository.start(provider, storage);
+    return { url, cookie: sealStorage(storage) };
+  }
+  async callback(code: string, cookieHeader?: string) {
+    return sessionData(await this.repository.exchange(code, openStorage(cookieHeader)));
+  }
+  async refresh(refreshToken: string) { return sessionData(await this.repository.refresh(refreshToken)); }
+  async logout(accessToken: string) { await this.repository.logout(accessToken); }
+}
+export const authService = new AuthService();

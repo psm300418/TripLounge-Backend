@@ -1,23 +1,16 @@
-import { NextFunction, Request, Response } from 'express';
-import { AppError } from '../utils/appError';
+import type { ErrorRequestHandler } from "express";
+import { MulterError } from "multer";
 
-export const errorMiddleware = (
-  error: Error,
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
-) => {
-  if (error instanceof AppError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: { code: error.code, message: error.message },
-    });
-    return;
+export class AppError extends Error {
+  constructor(public readonly statusCode: number, public readonly code: string, message: string) {
+    super(message);
   }
-
-  console.error(error);
-  res.status(500).json({
-    success: false,
-    error: { code: 'INTERNAL_SERVER_ERROR', message: '서버 오류가 발생했습니다.' },
-  });
+}
+export const errorMiddleware: ErrorRequestHandler = (err: unknown, _req, res, _next) => {
+  const status = err instanceof AppError ? err.statusCode :
+    err instanceof MulterError || err instanceof SyntaxError ? 400 : 500;
+  res.status(status).json({ success: false, error: {
+    code: err instanceof AppError ? err.code : status === 400 ? "INVALID_REQUEST" : "INTERNAL_SERVER_ERROR",
+    message: err instanceof AppError ? err.message : status === 400 ? "잘못된 요청입니다." : "서버 오류가 발생했습니다.",
+  } });
 };
