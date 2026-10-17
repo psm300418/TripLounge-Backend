@@ -11,10 +11,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit",
-    "auth:init": "node scripts/auth-init.mjs",
-    "auth:check": "node scripts/auth-setup.mjs --check",
-    "auth:setup": "node scripts/auth-setup.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

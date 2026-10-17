@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { validate } from "../../../middlewares/validate.middleware.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { uuidIdSchema } from "../../../utils/schema.js";
+import { notificationQuerySchema, notificationUpdateSchema } from "./notification.schema.js";
+import { notificationController } from "./notification.controller.js";
+export const notificationRouter = Router();
+notificationRouter.get("/", validate({ query: notificationQuerySchema }), asyncHandler(notificationController.list));
+notificationRouter.get("/:id/target", validate({ params: uuidIdSchema }), asyncHandler(notificationController.target));
+notificationRouter.patch("/:id", validate({ params: uuidIdSchema, body: notificationUpdateSchema }), asyncHandler(notificationController.markRead));

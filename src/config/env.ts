@@ -8,7 +8,6 @@ const parsedEnv = z.object({
   CLIENT_ORIGIN: z.string().url(),
   AUTH_REDIRECT_URL: z.string().url(),
   AUTH_COOKIE_SECRET: z.string().regex(/^[a-f0-9]{64}$/i),
-  AUTH_APPLE_ENABLED: z.enum(["true", "false"]).default("false"),
 }).parse(process.env);
 
 if (parsedEnv.NODE_ENV === "production" &&
@@ -23,5 +22,4 @@ export const env = {
   clientOrigin: new URL(parsedEnv.CLIENT_ORIGIN).origin,
   authRedirectUrl: parsedEnv.AUTH_REDIRECT_URL,
   authCookieSecret: parsedEnv.AUTH_COOKIE_SECRET,
-  authAppleEnabled: parsedEnv.AUTH_APPLE_ENABLED === "true",
 };
