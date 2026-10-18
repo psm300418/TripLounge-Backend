@@ -7,7 +7,7 @@ import { authRouter } from "./modules/auth/auth.route.js";
 import { postRouter } from "./modules/post/post.route.js";
 export const app = express();
 app.disable("x-powered-by");
-app.use(cors({ origin: env.clientOrigin, credentials: true }));
+app.use(cors({ origin: env.nodeEnv === "development" ? true : env.clientOrigin, credentials: true }));
 app.use(express.json({ limit: "32kb" }));
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
@@ -15,7 +15,7 @@ app.use((req, res, next) => {
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
   // CORS alone does not prevent a cross-origin request from executing.
-  if (req.headers.origin && req.headers.origin !== env.clientOrigin) {
+  if (env.nodeEnv === "production" && req.headers.origin && req.headers.origin !== env.clientOrigin) {
     next(new AppError(403, "FORBIDDEN", "허용되지 않은 요청 출처입니다.")); return;
   }
   next();

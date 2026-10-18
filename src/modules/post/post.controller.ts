@@ -10,9 +10,9 @@ export class PostController {
   createPost = async (req: Request, res: Response): Promise<void> => {
     const body = req.body as CreatePostInput;
 
-    const { userId } = getAuth(res);
+    const { userId, supabase: userClient } = getAuth(res);
 
-    const newPost = await postService.createPost(userId, body);
+    const newPost = await postService.createPost(userId, body, userClient);
 
     res.status(201).json({
       success: true,
@@ -25,7 +25,6 @@ export class PostController {
   // 이미지 업로드 요청
   uploadImage = async (req: Request, res: Response): Promise<void> => {
     const file = req.file;
-    // Service에서 URL + 메타데이터 받기
     const result = await postService.uploadImage(file);
 
     res.status(201).json({
@@ -44,7 +43,8 @@ export class PostController {
       throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
     }
 
-    const post = await postService.getPostById(postId);
+    const { supabase: userClient } = getAuth(res);
+    const post = await postService.getPostById(postId, userClient);
 
     res.status(200).json({
       success: true,
@@ -62,8 +62,8 @@ export class PostController {
       throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
     }
 
-    const { userId } = getAuth(res);
-    await postService.deletePost(postId, userId);
+    const { userId, supabase: userClient } = getAuth(res);
+    await postService.deletePost(postId, userId, userClient);
 
     res.status(200).json({
       success: true,
@@ -81,9 +81,9 @@ export class PostController {
       throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
     }
 
-    const { userId } = getAuth(res);
+    const { userId, supabase: userClient } = getAuth(res);
     const body = req.body as UpdatePostInput;
-    const updatedPost = await postService.updatePost(postId, userId, body);
+    const updatedPost = await postService.updatePost(postId, userId, body, userClient);
 
     res.status(200).json({
       success: true,

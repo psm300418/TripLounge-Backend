@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { postRepository } from "./post.repository.js";
 import { AppError } from "../../middlewares/error.middleware.js";
 import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
@@ -7,7 +8,7 @@ import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 export class PostService {
 
   // 게시글 작성
-  async createPost(userId: string, input: CreatePostInput) {
+  async createPost(userId: string, input: CreatePostInput, client?: SupabaseClient) {
     // 여행 기간 검사, 최대 30일
     const start = new Date(input.startDate);
     const end = new Date(input.endDate);
@@ -20,7 +21,7 @@ export class PostService {
       throw new AppError(400, "EXCEED_MAX_DAYS", "여행 기간은 최대 30일까지 가능합니다.");
     }
 
-    return await postRepository.createPost(userId, input);
+    return await postRepository.createPost(userId, input, client);
   }
   
 
@@ -75,8 +76,8 @@ export class PostService {
 
 
   // 게시글 조회
-  async getPostById(postId: number) {
-    const post = await postRepository.findPostById(postId);
+  async getPostById(postId: number, client?: SupabaseClient) {
+    const post = await postRepository.findPostById(postId, client);
 
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
@@ -88,8 +89,8 @@ export class PostService {
 
 
   // 게시글 삭제
-  async deletePost(postId: number, userId: string) {
-    const post = await postRepository.findPostById(postId);
+  async deletePost(postId: number, userId: string, client?: SupabaseClient) {
+    const post = await postRepository.findPostById(postId, client);
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     }
@@ -99,14 +100,14 @@ export class PostService {
       throw new AppError(403, "FORBIDDEN", "본인의 게시글만 삭제할 수 있습니다.");
     }
 
-    await postRepository.deletePostById(postId);
+    await postRepository.deletePostById(postId, client);
   }
 
 
 
   // 게시글 수정
-  async updatePost(postId: number, userId: string, input: UpdatePostInput) {
-    const post = await postRepository.findPostById(postId);
+  async updatePost(postId: number, userId: string, input: UpdatePostInput, client?: SupabaseClient) {
+    const post = await postRepository.findPostById(postId, client);
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     }
@@ -131,7 +132,7 @@ export class PostService {
       }
     }
 
-    return await postRepository.updatePost(postId, input);
+    return await postRepository.updatePost(postId, input, client);
   }
 
 } 
