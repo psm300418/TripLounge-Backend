@@ -2,22 +2,18 @@ import type { Request, Response } from "express";
 import { postService } from "./post.service.js";
 import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 import { AppError } from "../../middlewares/error.middleware.js";
+import { getAuth } from "../../utils/context.js";
 
 export class PostController {
 
   // 게시글 작성 요청
   createPost = async (req: Request, res: Response): Promise<void> => {
-    // 클라이언트가 보낸 데이터 꺼내기 
     const body = req.body as CreatePostInput;
 
-    // 작성자 ID 가져오기
-    // 지금은 개발 단계이므로 임시 UUID를 넣음 추후 로그인 연동 시 req에서 꺼냄
-    const userId = "3f6b5383-2320-410f-8bf0-bff7b166e6be"; 
+    const { userId } = getAuth(res);
 
-    // Service 호출
     const newPost = await postService.createPost(userId, body);
 
-    // 201 Created 상태 코드와 함께 성공 응답 반환
     res.status(201).json({
       success: true,
       data: newPost,
@@ -26,7 +22,7 @@ export class PostController {
 
 
 
-  // 이미지 업로드 
+  // 이미지 업로드 요청
   uploadImage = async (req: Request, res: Response): Promise<void> => {
     const file = req.file;
     // Service에서 URL + 메타데이터 받기
@@ -66,7 +62,8 @@ export class PostController {
       throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
     }
 
-    await postService.deletePost(postId);
+    const { userId } = getAuth(res);
+    await postService.deletePost(postId, userId);
 
     res.status(200).json({
       success: true,
@@ -84,8 +81,9 @@ export class PostController {
       throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
     }
 
+    const { userId } = getAuth(res);
     const body = req.body as UpdatePostInput;
-    const updatedPost = await postService.updatePost(postId, body);
+    const updatedPost = await postService.updatePost(postId, userId, body);
 
     res.status(200).json({
       success: true,

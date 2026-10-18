@@ -88,16 +88,16 @@ export class PostService {
 
 
   // 게시글 삭제
-  async deletePost(postId: number) {
+  async deletePost(postId: number, userId: string) {
     const post = await postRepository.findPostById(postId);
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     }
 
-    // 로그인 연동 완료 후 인증 추가
-    // if (post.user_id !== userId) {
-    //   throw new AppError(403, "FORBIDDEN", "본인의 게시글만 삭제할 수 있습니다.");
-    // }
+    // 작성자 확인
+    if (post.user_id !== userId) {
+      throw new AppError(403, "FORBIDDEN", "본인의 게시글만 삭제할 수 있습니다.");
+    }
 
     await postRepository.deletePostById(postId);
   }
@@ -105,16 +105,16 @@ export class PostService {
 
 
   // 게시글 수정
-  async updatePost(postId: number, input: UpdatePostInput) {
+  async updatePost(postId: number, userId: string, input: UpdatePostInput) {
     const post = await postRepository.findPostById(postId);
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     }
 
-    // 로그인 연동 완료 후 인증 추가
-    // if (post.user_id !== userId) {
-    //   throw new AppError(403, "FORBIDDEN", "본인의 게시글만 수정할 수 있습니다.");
-    // }
+    // 작성자 본인 확인
+    if (post.user_id !== userId) {
+      throw new AppError(403, "FORBIDDEN", "본인의 게시글만 수정할 수 있습니다.");
+    }
 
     const startDate = input.startDate || post.start_date;
     const endDate = input.endDate || post.end_date;
