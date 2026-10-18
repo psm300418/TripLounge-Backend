@@ -3,12 +3,12 @@ import { z } from "zod";
 // 이미지 스키마
 const photoSchema = z.object({
   imageUrl: z.string().url("유효한 이미지 URL이 필요합니다."),
-  takenAt: z.string().datetime().optional(),         // 촬영 시간 
-  placeName: z.string().max(255).optional(),          // 장소명 
-  address: z.string().max(255).optional(),            // 상세 주소
-  latitude: z.number().optional(),                    // 위도 
-  longitude: z.number().optional(),                   // 경도 
-  orderIndex: z.number().int().default(0),            // 사진 순서
+  takenAt: z.string().datetime().optional(),                        // 촬영 시간 
+  placeName: z.string().max(255).optional(),                        // 장소명 
+  address: z.string().max(255).nullable().optional(),               // 상세 주소
+  latitude: z.number().min(-90).max(90).nullable().optional(),      // 위도 
+  longitude: z.number().min(-180).max(180).nullable().optional(),   // 경도 
+  orderIndex: z.number().int().default(0),                          // 사진 순서
 });
 
 // 하루 일기 스키마

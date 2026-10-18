@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { postRepository } from "./post.repository.js";
 import { AppError } from "../../middlewares/error.middleware.js";
 import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
+import { findRoadAddress } from "./post.geocoding.js";
 
 export class PostService {
 
@@ -28,50 +29,58 @@ export class PostService {
 
   // 이미지 업로드 + 사진 메타데이터 추출
   async uploadImage(file?: Express.Multer.File): Promise<{
-    imageUrl: string;
-    takenAt?: string;
-    latitude?: number;
-    longitude?: number;
-  }> {
-    if (!file) {
-      throw new AppError(400, "INVALID_REQUEST", "업로드할 이미지 파일이 필요합니다.");
+  imageUrl: string;
+  takenAt?: string;
+  latitude?: number;
+  longitude?: number;
+  address: string | null;
+}> {
+  if (!file) {
+    throw new AppError(400, "INVALID_REQUEST", "업로드할 이미지 파일이 필요합니다.");
+  }
+
+  let takenAt: string | undefined;
+  let latitude: number | undefined;
+  let longitude: number | undefined;
+
+  try {
+    const exifr = await import("exifr");
+    const [exif, gps] = await Promise.all([
+      exifr.default.parse(file.buffer).catch(() => null),
+      exifr.default.gps(file.buffer).catch(() => null),
+    ]);
+
+    if (exif?.DateTimeOriginal) {
+      takenAt = new Date(exif.DateTimeOriginal).toISOString();
     }
 
-    // EXIF 메타데이터 추출 
-    let takenAt: string | undefined;
-    let latitude: number | undefined;
-    let longitude: number | undefined;
-
-    try {
-      const exifr = await import("exifr");
-      const [exif, gps] = await Promise.all([
-        exifr.default.parse(file.buffer).catch(() => null),
-        exifr.default.gps(file.buffer).catch(() => null),
-      ]);
-
-      if (exif?.DateTimeOriginal) {
-        takenAt = new Date(exif.DateTimeOriginal).toISOString();
-      }
-      if (gps) {
-        latitude = gps.latitude;
-        longitude = gps.longitude;
-      }
-    } catch {
-      // EXIF가 없는 사진이거나 파싱 실패해도 업로드는 계속 진행
+    if (gps) {
+      latitude = gps.latitude;
+      longitude = gps.longitude;
     }
+  } catch {
+    // EXIF 파싱에 실패해도 사진 업로드는 계속 진행
+  }
 
-    // 파일명 중복 방지
-    const fileExtension = path.extname(file.originalname) || ".jpg";
-    const uniqueFileName = `${Date.now()}_${randomUUID()}${fileExtension}`;
-    // Storage 업로드 후 URL 받기
-    const imageUrl = await postRepository.uploadImageToStorage(
+  const fileExtension = path.extname(file.originalname) || ".jpg";
+  const uniqueFileName = `${Date.now()}_${randomUUID()}${fileExtension}`;
+
+  const addressPromise =
+    latitude !== undefined && longitude !== undefined
+      ? findRoadAddress(latitude, longitude)
+      : Promise.resolve(null);
+
+  const [imageUrl, address] = await Promise.all([
+    postRepository.uploadImageToStorage(
       uniqueFileName,
       file.buffer,
       file.mimetype
-    );
-    
-    return { imageUrl, takenAt, latitude, longitude };
-  }
+    ),
+    addressPromise,
+  ]);
+
+  return { imageUrl, takenAt, latitude, longitude, address };
+}
 
 
 
