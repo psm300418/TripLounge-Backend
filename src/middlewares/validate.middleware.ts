@@ -1,41 +1,17 @@
 import type { RequestHandler } from "express";
 import type { ZodType } from "zod";
-
 import { AppError } from "./error.middleware.js";
 
-type RequestSchemas = {
-  body?: ZodType;
-  params?: ZodType;
-  query?: ZodType;
-};
-
-export const validate =
-  (schemas: RequestSchemas): RequestHandler =>
-  (req, _res, next) => {
-    const result = {
-      body: schemas.body?.safeParse(req.body),
-      params: schemas.params?.safeParse(req.params),
-      query: schemas.query?.safeParse(req.query),
-    };
-
-    const hasError = Object.values(result).some(
-      (validationResult) => validationResult && !validationResult.success,
-    );
-
-    if (hasError) {
-      next(new AppError(400, "INVALID_REQUEST", "Invalid request."));
-      return;
+export const validate = (schemas: { body?: ZodType; params?: ZodType; query?: ZodType }): RequestHandler =>
+  (req, res, next) => {
+    for (const key of ["body", "params", "query"] as const) {
+      const schema = schemas[key];
+      if (!schema) continue;
+      const result = schema.safeParse(req[key]);
+      if (!result.success) { next(new AppError(400, "INVALID_REQUEST", "요청 형식을 확인해주세요.")); return; }
+      // Express 5 req.query is a getter. Parsed input belongs in res.locals.
+      res.locals[key] = result.data;
+      if (key === "body") req.body = result.data;
     }
-
-    if (result.body?.success) {
-      req.body = result.body.data;
-    }
-    if (result.params?.success) {
-      req.params = result.params.data as typeof req.params;
-    }
-    if (result.query?.success) {
-      req.query = result.query.data as typeof req.query;
-    }
-
     next();
   };
