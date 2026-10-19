@@ -12,6 +12,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
+    "test": "node --import dotenv/config --import tsx --test tests/*.test.ts",
     "auth:init": "node scripts/auth-init.mjs",
     "auth:check": "node scripts/auth-setup.mjs --check",
     "auth:setup": "node scripts/auth-setup.mjs"

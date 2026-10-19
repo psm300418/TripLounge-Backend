@@ -9,9 +9,7 @@ export class PostController {
   // 게시글 작성 요청
   createPost = async (req: Request, res: Response): Promise<void> => {
     const body = req.body as CreatePostInput;
-
     const { userId, supabase: userClient } = getAuth(res);
-
     const newPost = await postService.createPost(userId, body, userClient);
 
     res.status(201).json({
@@ -43,8 +41,8 @@ export class PostController {
       throw new AppError(400, "INVALID_REQUEST", "유효한 게시글 ID가 아닙니다.");
     }
 
-    const { supabase: userClient } = getAuth(res);
-    const post = await postService.getPostById(postId, userClient);
+    const { userId, supabase: userClient } = getAuth(res);
+    const post = await postService.getPostById(postId, userId, userClient);
 
     res.status(200).json({
       success: true,
