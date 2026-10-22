@@ -5,12 +5,11 @@ import { postRepository } from "./post.repository.js";
 import { AppError } from "../../middlewares/error.middleware.js";
 import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 import { findRoadAddress } from "./post.geocoding.js";
-import { likeService } from "../like/like.service.js";
 
 export class PostService {
 
   // 게시글 작성
-  async createPost(userId: string, input: CreatePostInput, client?: SupabaseClient) {
+  async createPost(input: CreatePostInput, client?: SupabaseClient) {
     // 여행 기간 검사, 최대 30일
     const start = new Date(input.startDate);
     const end = new Date(input.endDate);
@@ -23,7 +22,7 @@ export class PostService {
       throw new AppError(400, "EXCEED_MAX_DAYS", "여행 기간은 최대 30일까지 가능합니다.");
     }
 
-    return await postRepository.createPost(userId, input, client);
+    return await postRepository.createPost(input, client);
   }
   
 
@@ -86,30 +85,23 @@ export class PostService {
 
 
   // 게시글 조회
-  async getPostById(postId: number, userId: string, client: SupabaseClient) {
+  async getPostById(postId: number, client: SupabaseClient) {
     const post = await postRepository.findPostById(postId, client);
 
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     }
 
-    const likeSummary = await likeService.getLikeSummary(postId, userId, client);
-
-    return { ...post, ...likeSummary };
+    return post;
   }
 
 
 
   // 게시글 삭제
-  async deletePost(postId: number, userId: string, client?: SupabaseClient) {
+  async deletePost(postId: number, client?: SupabaseClient) {
     const post = await postRepository.findPostById(postId, client);
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
-    }
-
-    // 작성자 확인
-    if (post.user_id !== userId) {
-      throw new AppError(403, "FORBIDDEN", "본인의 게시글만 삭제할 수 있습니다.");
     }
 
     await postRepository.deletePostById(postId, client);
@@ -118,15 +110,10 @@ export class PostService {
 
 
   // 게시글 수정
-  async updatePost(postId: number, userId: string, input: UpdatePostInput, client?: SupabaseClient) {
+  async updatePost(postId: number, input: UpdatePostInput, client?: SupabaseClient) {
     const post = await postRepository.findPostById(postId, client);
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
-    }
-
-    // 작성자 본인 확인
-    if (post.user_id !== userId) {
-      throw new AppError(403, "FORBIDDEN", "본인의 게시글만 수정할 수 있습니다.");
     }
 
     const startDate = input.startDate || post.start_date;

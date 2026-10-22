@@ -6,13 +6,12 @@ import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 export class PostRepository {
 
   // 게시글 저장 posts -> post_members -> post_days -> post_photos
-  async createPost(userId: string, input: CreatePostInput, client: SupabaseClient = supabase) {
+  async createPost(input: CreatePostInput, client: SupabaseClient = supabase) {
 
     // posts 테이블에 기본 정보 저장
     const { data: post, error: postError } = await client
       .from("posts")
       .insert({
-        user_id: userId,
         start_date: input.startDate,
         end_date: input.endDate,
         visibility: input.visibility,

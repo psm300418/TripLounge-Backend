@@ -3,9 +3,7 @@ import express from "express";
 import { env } from "./config/env.js";
 import { errorMiddleware, AppError } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/notFound.middleware.js";
-import { authRouter } from "./modules/auth/auth.route.js";
 import { postRouter } from "./modules/post/post.route.js";
-import { likeRouter } from "./modules/like/like.route.js";
 export const app = express();
 app.disable("x-powered-by");
 app.use(cors({ origin: env.nodeEnv === "development" ? true : env.clientOrigin, credentials: true }));
@@ -23,8 +21,6 @@ app.use((req, res, next) => {
 });
 
 app.get("/health", (_req, res) => { res.json({ success: true, data: { status: "ok" } }); });
-app.use("/auth", authRouter);
 app.use("/posts", postRouter);
-app.use("/posts", likeRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
