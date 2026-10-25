@@ -1,4 +1,4 @@
-// Only the setup command uses provider secrets and the Management API token.
+// 소셜 비밀키와 관리 API 토큰은 초기 설정 명령에서만 사용하는 값임.
 export function readAuthConfig(values) {
   const required = name => {
     const value = values[name]?.trim();
@@ -40,7 +40,7 @@ export function readAuthConfig(values) {
   }
   if (!providers.length) throw new Error('Google 또는 Kakao의 ID와 Client Secret을 입력하세요.');
   if (providers.includes('kakao')) {
-    // Kakao login never requests account_email in this project.
+    // 카카오 로그인에서 account_email 권한을 요청하지 않는 설정임.
     patch.external_kakao_email_optional = true;
   }
   return { projectRef: match[1], callbackUrl: `${supabaseUrl.origin}/auth/v1/callback`, redirectUrl: redirect.href, providers, patch };
@@ -54,7 +54,7 @@ export async function applyAuthConfig(config, token, request = fetch) {
     let response;
     try { response = await request(endpoint, { ...options, headers, redirect: 'error', signal: AbortSignal.timeout(15000) }); }
     catch { throw new Error('Supabase 설정 요청에 실패했습니다. 네트워크를 확인한 뒤 다시 실행하세요.'); }
-    // Response bodies may contain provider secrets; never print them.
+    // 응답에 소셜 비밀키가 포함될 수 있어 본문 출력은 금지임.
     if (!response.ok) throw new Error(`Supabase 설정 요청 실패 (HTTP ${response.status}). 프로젝트 참조 ID와 토큰의 Auth 설정 읽기/쓰기 권한을 확인하세요.`);
     return response;
   };

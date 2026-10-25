@@ -33,7 +33,7 @@ begin
 end $$;
 create trigger on_trip_lounge_user_created after insert on auth.users
 for each row execute function private.create_profile();
--- Existing accounts are backfilled without touching auth.users.
+-- auth.users를 변경하지 않고 기존 계정의 프로필·친구 코드를 생성하는 처리임.
 insert into public.users(id,nickname)
 select id,'여행자_' || left(replace(id::text,'-',''),12) from auth.users;
 do $$ declare v_user record; begin
