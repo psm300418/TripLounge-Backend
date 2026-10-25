@@ -1,4 +1,3 @@
--- Fresh auth-only database baseline. Do not apply over the team 001-006 migrations.
 begin;
 create schema if not exists private;
 revoke all on schema private from public;
@@ -12,55 +11,41 @@ create table public.users (
 create table public.friend_codes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references public.users(id) on delete cascade,
-  friend_code varchar(7) not null unique check (friend_code ~ '^[A-Z0-9]{7}$'),
+  friend_code varchar(16) not null unique check (friend_code ~ '^[A-F0-9]{16}$'),
   created_at timestamptz not null default now()
 );
-create function private.generate_friend_code() returns text
-language plpgsql volatile set search_path = '' as $$
-declare
-  v_alphabet constant text := 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  v_code text := '';
-  v_byte int;
-begin
-  while length(v_code) < 7 loop
-    -- The first UUID byte has no version/variant bits. Reject 252-255 to avoid modulo bias.
-    v_byte := get_byte(decode(replace(gen_random_uuid()::text, '-', ''), 'hex'), 0);
-    if v_byte < 252 then
-      v_code := v_code || substr(v_alphabet, (v_byte % 36) + 1, 1);
-    end if;
-  end loop;
-  return v_code;
-end $$;
-revoke all on function private.generate_friend_code() from public, anon, authenticated;
-
 create function private.create_profile() returns trigger
 language plpgsql security definer set search_path = '' as $$
-declare v_attempt int;
+declare v_attempt int := 0;
 begin
-  insert into public.users(id,nickname) values(new.id, '여행자_' || left(replace(new.id::text,'-',''),12));
-  for v_attempt in 1..100 loop
-    insert into public.friend_codes(user_id,friend_code)
-    values(new.id,private.generate_friend_code())
-    on conflict(friend_code) do nothing;
-    if found then return new; end if;
+  insert into public.users(id,nickname) values (new.id, '여행자_' || left(replace(new.id::text,'-',''),12));
+  loop
+    begin
+      insert into public.friend_codes(user_id,friend_code)
+      values(new.id,upper(substr(replace(gen_random_uuid()::text,'-',''),1,8) || substr(replace(gen_random_uuid()::text,'-',''),1,8)));
+      exit;
+    exception when unique_violation then
+      v_attempt := v_attempt + 1;
+      if v_attempt > 10 then raise; end if;
+    end;
   end loop;
-  raise exception 'FRIEND_CODE_GENERATION_FAILED';
+  return new;
 end $$;
-
 create trigger on_trip_lounge_user_created after insert on auth.users
 for each row execute function private.create_profile();
 -- Existing accounts are backfilled without touching auth.users.
 insert into public.users(id,nickname)
 select id,'여행자_' || left(replace(id::text,'-',''),12) from auth.users;
-do $$ declare v_user record; v_attempt int; v_inserted boolean; begin
+do $$ declare v_user record; begin
   for v_user in select id from public.users loop
-    v_inserted := false;
-    for v_attempt in 1..100 loop
-      insert into public.friend_codes(user_id,friend_code)
-      values(v_user.id,private.generate_friend_code()) on conflict(friend_code) do nothing;
-      if found then v_inserted := true; exit; end if;
+    loop
+      begin
+        insert into public.friend_codes(user_id,friend_code)
+        values(v_user.id,upper(substr(replace(gen_random_uuid()::text,'-',''),1,8) || substr(replace(gen_random_uuid()::text,'-',''),1,8)));
+        exit;
+      exception when unique_violation then null;
+      end;
     end loop;
-    if not v_inserted then raise exception 'FRIEND_CODE_GENERATION_FAILED'; end if;
   end loop;
 end $$;
 create function private.touch_updated_at() returns trigger language plpgsql set search_path = '' as $$
