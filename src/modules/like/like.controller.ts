@@ -10,7 +10,7 @@ export class LikeController {
     res.json({ success: true, data: await likeService.getLikeSummary(postId, userId, userClient) });
   };
 
-  // 게시글 좋아요 등록
+  // 게시글 좋아요 등록 기능임.
   likePost = async (_req: Request, res: Response): Promise<void> => {
     const { postId } = res.locals.params as LikePostParams;
     const { userId, supabase: userClient } = getAuth(res);
@@ -19,7 +19,7 @@ export class LikeController {
     res.status(204).send();
   };
 
-  // 게시글 좋아요 취소
+  // 게시글 좋아요 취소 기능임.
   unlikePost = async (_req: Request, res: Response): Promise<void> => {
     const { postId } = res.locals.params as LikePostParams;
     const { userId, supabase: userClient } = getAuth(res);

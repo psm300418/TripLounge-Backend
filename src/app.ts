@@ -14,7 +14,7 @@ app.use(express.json({ limit: "32kb" }));
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
-  // CORS alone does not prevent a cross-origin request from executing.
+  // CORS만으로 막을 수 없는 외부 출처 요청의 실행을 차단하는 검사임.
   if (req.headers.origin && req.headers.origin !== env.clientOrigin) {
     next(new AppError(403, "FORBIDDEN", "허용되지 않은 요청 출처입니다.")); return;
   }

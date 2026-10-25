@@ -1,4 +1,4 @@
--- Apply after the team 001-009 migrations. Never recreate posts or post_likes.
+-- 001~009 적용 후 실행하며 게시글·좋아요 테이블은 재생성하지 않는 SQL임.
 begin;
 alter table public.post_likes enable row level security;
 revoke all on public.post_likes from anon,authenticated;
@@ -6,7 +6,7 @@ grant select,insert,delete on public.post_likes to authenticated;
 create unique index if not exists tl_post_likes_pair_idx on public.post_likes(post_id,user_id);
 create index if not exists post_likes_user_id_idx on public.post_likes(user_id);
 
--- Existing installations can use UUID or BIGINT identity IDs. Preserve either.
+-- 기존 UUID 또는 BIGINT 자동 생성 ID를 그대로 보존하는 처리임.
 do $$ declare v_sequence text; begin
   v_sequence := pg_get_serial_sequence('public.post_likes','id');
   if v_sequence is not null then
@@ -14,7 +14,7 @@ do $$ declare v_sequence text; begin
   end if;
 end $$;
 
--- Restrictive policies also constrain permissive policies from the teammate migration.
+-- 다른 작업자의 허용 정책에도 접근 제한을 적용하는 설정임.
 drop policy if exists tl_likes_read_guard on public.post_likes;
 create policy tl_likes_read_guard on public.post_likes as restrictive for select to authenticated using(private.can_view_post(post_id));
 drop policy if exists tl_likes_insert_guard on public.post_likes;
@@ -35,7 +35,7 @@ begin
   return v_summary;
 end $$;
 
--- Allow removing one's own earlier like even after visibility/friendship changes.
+-- 공개 범위나 친구 관계가 바뀌어도 본인 좋아요는 취소할 수 있는 처리임.
 create or replace function public.remove_post_like(p_post_id bigint) returns void
 language plpgsql security definer set search_path = '' as $$
 begin

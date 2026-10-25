@@ -1,5 +1,5 @@
 begin;
--- Only display names and avatars of people in an accessible post are exposed.
+-- 조회 가능한 게시글 참여자의 닉네임·프로필 사진만 제공하는 기능임.
 create or replace function public.get_post_people(p_post_id bigint) returns jsonb
 language sql stable security definer set search_path = '' as $$
   select jsonb_build_object(

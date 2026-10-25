@@ -19,7 +19,7 @@ create function private.owns_day(p_day_id bigint) returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists(select 1 from public.post_days where id=p_day_id and private.owns_post(post_id));
 $$;
--- Restrictive policies also constrain any older permissive policies.
+-- 기존 허용 정책에도 접근 제한을 적용하는 정책임.
 do $$ declare v_table text; v_read text; v_write text; begin
   foreach v_table in array array['posts','post_members','post_days','post_photos'] loop
     v_read := case v_table when 'posts' then 'private.can_view_post(id)' when 'post_photos' then 'private.can_view_day(post_day_id)' else 'private.can_view_post(post_id)' end;

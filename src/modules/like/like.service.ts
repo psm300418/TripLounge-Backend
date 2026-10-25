@@ -3,7 +3,7 @@ import { AppError } from "../../middlewares/error.middleware.js";
 import { likeRepository } from "./like.repository.js";
 
 export class LikeService {
-  // 좋아요 추가
+  // 좋아요 추가 기능임.
   async likePost(postId: number, userId: string, client: SupabaseClient): Promise<void> {
     const postExists = await likeRepository.postExists(postId, client);
     if (!postExists) {
@@ -13,12 +13,12 @@ export class LikeService {
     await likeRepository.addLike(postId, userId, client);
   }
 
-  // 좋아요 취소
+  // 좋아요 취소 기능임.
   async unlikePost(postId: number, userId: string, client: SupabaseClient): Promise<void> {
     await likeRepository.removeLike(postId, userId, client);
   }
 
-  // 좋아요 정보 조회
+  // 좋아요 정보 조회 기능임.
   async getLikeSummary(postId: number, userId: string, client: SupabaseClient) {
     return await likeRepository.findLikeSummary(postId, userId, client);
   }

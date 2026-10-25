@@ -14,7 +14,7 @@ likeRouter.get(
   asyncHandler(likeController.getLikeSummary)
 );
 
-// PUT 요청 /posts/:postId/likes/me (좋아요 등록)
+// PUT /posts/:postId/likes/me는 좋아요 등록 경로임.
 likeRouter.put(
   "/:postId/likes/me",
   authMiddleware,
@@ -22,7 +22,7 @@ likeRouter.put(
   asyncHandler(likeController.likePost)
 );
 
-// DELETE 요청 /posts/:postId/likes/me (좋아요 취소)
+// DELETE /posts/:postId/likes/me는 좋아요 취소 경로임.
 likeRouter.delete(
   "/:postId/likes/me",
   authMiddleware,
