@@ -5,6 +5,7 @@ import { postRepository } from "./post.repository.js";
 import { AppError } from "../../middlewares/error.middleware.js";
 import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 import { findRoadAddress } from "./post.geocoding.js";
+import { likeService } from "../like/like.service.js";
 
 export class PostService {
 
@@ -85,14 +86,16 @@ export class PostService {
 
 
   // 게시글 조회
-  async getPostById(postId: number, client?: SupabaseClient) {
+  async getPostById(postId: number, userId: string, client: SupabaseClient) {
     const post = await postRepository.findPostById(postId, client);
 
     if (!post) {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     }
 
-    return post;
+    const likeSummary = await likeService.getLikeSummary(postId, userId, client);
+
+    return { ...post, ...likeSummary };
   }
 
 

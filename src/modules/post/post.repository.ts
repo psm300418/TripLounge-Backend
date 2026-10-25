@@ -156,7 +156,6 @@ export class PostRepository {
   }
 
 
-
   // 게시글 삭제 
   async deletePostById(postId: number, client: SupabaseClient = supabase) {
     const { error } = await client
