@@ -14,6 +14,11 @@ export class NotificationRepository {
       .eq("id", id).eq("user_id", this.userId).maybeSingle();
     checkDb(error); return data as Notification | null;
   }
+  async markAllRead() {
+    const { error } = await this.supabase.from("notifications").update({ read_at: new Date().toISOString() })
+      .eq("user_id", this.userId).is("read_at", null);
+    checkDb(error);
+  }
   async markRead(id: string) {
     const { error } = await this.supabase.from("notifications").update({ read_at: new Date().toISOString() })
       .eq("id", id).eq("user_id", this.userId).is("read_at", null);

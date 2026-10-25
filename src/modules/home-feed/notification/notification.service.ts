@@ -18,5 +18,6 @@ export class NotificationService {
     if (item.friend_request_id) return { type: "FRIEND_REQUEST", friendRequestId: item.friend_request_id, path: "/friend-requests" };
     throw new AppError(404, "TARGET_NOT_FOUND", "알림 대상이 삭제되었습니다.");
   }
+  async markAllRead() { await this.repository.markAllRead(); }
   async markRead(id: string) { await this.find(id); await this.repository.markRead(id); }
 }

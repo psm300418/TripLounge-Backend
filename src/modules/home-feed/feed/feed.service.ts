@@ -1,5 +1,5 @@
 import { AppError } from "../../../middlewares/error.middleware.js";
-import type { FeedInput } from "./feed.schema.js";
+import type { FeedInput, FeedFilter } from "./feed.schema.js";
 import type { FeedRepository } from "./feed.repository.js";
 export class FeedService {
   constructor(private readonly repository: FeedRepository) {}
@@ -9,8 +9,14 @@ export class FeedService {
     if (!post) throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     return post;
   }
-  async neighbors(postId: number, scope: "ALL" | "MATES") {
+  async day(postId: number, dayNumber: number) {
     await this.getPostById(postId);
-    return this.repository.neighbors(postId, scope);
+    const day = await this.repository.findDay(postId, dayNumber);
+    if (!day) throw new AppError(404, "DAY_NOT_FOUND", "해당 일차를 찾을 수 없습니다.");
+    return day;
+  }
+  async neighbors(postId: number, filter: FeedFilter) {
+    await this.getPostById(postId);
+    return this.repository.neighbors(postId, filter);
   }
 }

@@ -7,4 +7,5 @@ import { notificationController } from "./notification.controller.js";
 export const notificationRouter = Router();
 notificationRouter.get("/", validate({ query: notificationQuerySchema }), asyncHandler(notificationController.list));
 notificationRouter.get("/:id/target", validate({ params: uuidIdSchema }), asyncHandler(notificationController.target));
+notificationRouter.patch("/", validate({ body: notificationUpdateSchema }), asyncHandler(notificationController.markAllRead));
 notificationRouter.patch("/:id", validate({ params: uuidIdSchema, body: notificationUpdateSchema }), asyncHandler(notificationController.markRead));

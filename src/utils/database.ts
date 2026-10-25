@@ -4,6 +4,7 @@ export function checkDb(error: DbError | null): void {
   if (!error) return;
   const messages: Record<string, [number, string]> = {
     AUTH_REQUIRED: [401, "로그인이 필요합니다."], FORBIDDEN: [403, "접근 권한이 없습니다."],
+    POST_NOT_FOUND: [404, "게시글을 찾을 수 없습니다."],
     USER_NOT_FOUND: [404, "사용자를 찾을 수 없습니다."], REQUEST_NOT_FOUND: [404, "친구 요청을 찾을 수 없습니다."],
     FRIEND_NOT_FOUND: [404, "친구를 찾을 수 없습니다."], ALREADY_FRIEND: [409, "이미 메이트입니다."],
     ALREADY_REQUESTED: [409, "처리 중인 친구 요청이 있습니다."], ALREADY_PROCESSED: [409, "이미 처리된 요청입니다."],

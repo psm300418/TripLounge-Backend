@@ -4,6 +4,7 @@ import { env } from "./config/env.js";
 import { errorMiddleware, AppError } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/notFound.middleware.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
+import { likeRouter } from "./modules/like/like.route.js";
 import { feedRouter } from "./modules/home-feed/feed/feed.route.js";
 import { notificationRouter } from "./modules/home-feed/notification/notification.route.js";
 export const app = express();
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
   next();
 });
 app.get("/health", (_req, res) => { res.json({ success: true, data: { status: "ok" } }); });
+app.use("/posts", likeRouter);
 app.use("/posts", authMiddleware, feedRouter);
 app.use("/notifications", authMiddleware, notificationRouter);
 app.use(notFoundMiddleware);
