@@ -1,0 +1,11 @@
+import { Router } from "express";
+import { validate } from "../../../middlewares/validate.middleware.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { postIdSchema } from "../../../utils/schema.js";
+import { feedController } from "./feed.controller.js";
+import { feedSchema, neighborsSchema, dayParamsSchema } from "./feed.schema.js";
+export const feedRouter = Router();
+feedRouter.get("/", validate({ query: feedSchema }), asyncHandler(feedController.list));
+feedRouter.get("/:id/neighbors", validate({ params: postIdSchema, query: neighborsSchema }), asyncHandler(feedController.neighbors));
+feedRouter.get("/:id/days/:dayNumber", validate({ params: dayParamsSchema }), asyncHandler(feedController.day));
+feedRouter.get("/:id", validate({ params: postIdSchema }), asyncHandler(feedController.detail));
