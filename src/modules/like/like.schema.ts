@@ -5,8 +5,3 @@ export const likePostParamsSchema = z.object({
 });
 
 export type LikePostParams = z.infer<typeof likePostParamsSchema>;
-
-export const likeSummarySchema = z.object({
-  likeCount: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
-  likedByMe: z.boolean(),
-});

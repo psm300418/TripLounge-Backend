@@ -1,10 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AppError } from "../../middlewares/error.middleware.js";
-import { checkDb } from "../../utils/database.js";
-import { likeSummarySchema } from "./like.schema.js";
 
 export class LikeRepository {
-  // 사용자가 조회 가능한 게시글인지 확인하는 기능임.
+  // 사용자가 조회할 수 있는 게시글인지 확인
   async postExists(postId: number, client: SupabaseClient): Promise<boolean> {
     const { data, error } = await client
       .from("posts")
@@ -12,40 +10,54 @@ export class LikeRepository {
       .eq("id", postId)
       .maybeSingle();
 
-    checkDb(error);
+    if (error) {
+      console.error("Supabase post lookup error:", error);
+      throw new AppError(500, "POST_LOOKUP_FAILED", "게시글 확인에 실패했습니다.");
+    }
 
     return Boolean(data);
   }
 
-  // 같은 사용자의 중복 좋아요를 방지하는 처리임.
+  // 중복 좋아요를 방지
   async addLike(postId: number, userId: string, client: SupabaseClient): Promise<void> {
     const { error } = await client
       .from("post_likes")
       .insert({ post_id: postId, user_id: userId });
 
     if (error?.code === "23505") return;
-    // 조회 후 저장 전에 발생한 게시글 삭제·비공개 전환을 처리하는 부분임.
-    if (error?.code === "23503") throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
-    checkDb(error);
+    if (error) {
+      console.error("Supabase post like insert error:", error);
+      throw new AppError(500, "POST_LIKE_CREATE_FAILED", "게시글 좋아요 처리에 실패했습니다.");
+    }
   }
 
-  // 현재 사용자의 좋아요만 삭제하는 기능임.
+  // 현재 사용자의 좋아요만 삭제
   async removeLike(postId: number, userId: string, client: SupabaseClient): Promise<void> {
-    // 비공개로 바뀐 글도 auth.uid()에 해당하는 본인 좋아요만 삭제하는 RPC임.
-    const { error } = await client.rpc("remove_post_like", { p_post_id: postId });
+    const { error } = await client
+      .from("post_likes")
+      .delete()
+      .eq("post_id", postId)
+      .eq("user_id", userId);
 
-    checkDb(error);
+    if (error) {
+      console.error("Supabase post like delete error:", error);
+      throw new AppError(500, "POST_LIKE_DELETE_FAILED", "게시글 좋아요 취소에 실패했습니다.");
+    }
   }
 
-  // 좋아요 수와 현재 사용자의 좋아요 여부를 조회하는 기능임.
+  // 게시글 좋아요 수와 현재 사용자의 좋아요 여부 조회
   async findLikeSummary(postId: number, userId: string, client: SupabaseClient) {
-    // 팀 함수의 인자 형식을 유지하고 조회 사용자는 JWT로 판별하는 방식임.
-    // 동시 변경 시 수와 상태가 어긋나지 않도록 같은 시점에 조회하는 방식임.
-    const { data, error } = await client.rpc("get_post_like_summary", { p_post_id: postId });
-    checkDb(error);
-    const summary = likeSummarySchema.safeParse(data);
-    if (!summary.success) throw new AppError(500, "POST_LIKE_SUMMARY_FAILED", "게시글 좋아요 정보를 불러오지 못했습니다.");
-    return summary.data;
+    const [countResult, userLikeResult] = await Promise.all([
+      client.from("post_likes").select("id", { count: "exact", head: true }).eq("post_id", postId),
+      client.from("post_likes").select("id").eq("post_id", postId).eq("user_id", userId).maybeSingle(),
+    ]);
+
+    if (countResult.error || userLikeResult.error) {
+      console.error("Supabase post like summary error:", countResult.error ?? userLikeResult.error);
+      throw new AppError(500, "POST_LIKE_SUMMARY_FAILED", "게시글 좋아요 정보를 불러오지 못했습니다.");
+    }
+
+    return { likeCount: countResult.count ?? 0, likedByMe: Boolean(userLikeResult.data) };
   }
 }
 

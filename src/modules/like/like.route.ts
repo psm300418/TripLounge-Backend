@@ -7,14 +7,7 @@ import { likePostParamsSchema } from "./like.schema.js";
 
 export const likeRouter = Router();
 
-likeRouter.get(
-  "/:postId/likes",
-  authMiddleware,
-  validate({ params: likePostParamsSchema }),
-  asyncHandler(likeController.getLikeSummary)
-);
-
-// PUT /posts/:postId/likes/me는 좋아요 등록 경로임.
+// PUT 요청 /posts/:postId/likes/me (좋아요 등록)
 likeRouter.put(
   "/:postId/likes/me",
   authMiddleware,
@@ -22,7 +15,7 @@ likeRouter.put(
   asyncHandler(likeController.likePost)
 );
 
-// DELETE /posts/:postId/likes/me는 좋아요 취소 경로임.
+// DELETE 요청 /posts/:postId/likes/me (좋아요 취소)
 likeRouter.delete(
   "/:postId/likes/me",
   authMiddleware,
