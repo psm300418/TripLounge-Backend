@@ -7,5 +7,5 @@ export const createSupabaseClient = (accessToken?: string) => createClient(
     global: accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : undefined,
   },
 );
-// Keep the existing post project's export name; never setSession on this singleton.
+// 기존 post의 내보내기 이름을 유지하며 공용 객체의 setSession 사용은 금지임.
 export const supabase = createSupabaseClient();

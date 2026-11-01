@@ -20,7 +20,7 @@ export class AuthRepository {
       provider, options: {
         redirectTo: env.authRedirectUrl,
         skipBrowserRedirect: true,
-        // `scopes` adds to Supabase defaults; singular `scope` replaces Kakao's email default.
+        // scopes는 기본 권한에 추가되므로 scope로 카카오 기본 이메일 요청을 대체하는 방식임.
         queryParams: provider === "kakao" ? { scope: "profile_nickname profile_image" } : undefined,
       },
     });
@@ -39,7 +39,7 @@ export class AuthRepository {
     return data.session;
   }
   async logout(accessToken: string) {
-    // Auth logout endpoint accepts the user's JWT; no service-role key is needed.
+    // 사용자 JWT로 로그아웃하며 service-role 키는 불필요한 방식임.
     const response = await fetch(`${env.supabaseUrl}/auth/v1/logout?scope=local`, {
       method: "POST", headers: { apikey: env.supabaseAnonKey, Authorization: `Bearer ${accessToken}` },
       signal: AbortSignal.timeout(10000),

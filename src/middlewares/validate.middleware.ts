@@ -9,7 +9,7 @@ export const validate = (schemas: { body?: ZodType; params?: ZodType; query?: Zo
       if (!schema) continue;
       const result = schema.safeParse(req[key]);
       if (!result.success) { next(new AppError(400, "INVALID_REQUEST", "요청 형식을 확인해주세요.")); return; }
-      // Express 5 req.query is a getter. Parsed input belongs in res.locals.
+      // Express 5의 req.query는 읽기 전용이므로 검증 결과는 res.locals에 저장하는 방식임.
       res.locals[key] = result.data;
       if (key === "body") req.body = result.data;
     }

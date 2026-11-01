@@ -9,7 +9,7 @@ import { authWebController } from "./auth.web.controller.js";
 
 export const authWebRouter = Router();
 authWebRouter.use((req, _res, next) => {
-  // Cookie-backed mutations must originate from the configured frontend.
+  // 쿠키를 사용하는 변경 요청은 지정한 프런트 출처만 허용하는 정책임.
   if (req.method !== "GET" && req.headers.origin !== env.clientOrigin) {
     next(new AppError(403, "FORBIDDEN", "허용되지 않은 요청 출처입니다.")); return;
   }
