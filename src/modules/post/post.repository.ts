@@ -93,8 +93,8 @@ export class PostRepository {
 
 
   // 이미지 업로드
-  async uploadImageToStorage(fileName: string, fileBuffer: Buffer, mimeType: string): Promise<string> {
-    const { error } = await supabase.storage
+  async uploadImageToStorage(fileName: string, fileBuffer: Buffer, mimeType: string, client: SupabaseClient = supabase): Promise<string> {
+    const { error } = await client.storage
       .from("post-images")
       .upload(fileName, fileBuffer, {
         contentType: mimeType,
@@ -105,7 +105,7 @@ export class PostRepository {
       throw new AppError(500, "IMAGE_UPLOAD_FAILED", "이미지 업로드에 실패했습니다.");
     }
 
-    const { data } = supabase.storage
+    const { data } = client.storage
       .from("post-images")
       .getPublicUrl(fileName);
 

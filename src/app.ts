@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import { fileURLToPath } from "node:url";
 import { env } from "./config/env.js";
 import { errorMiddleware, AppError } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/notFound.middleware.js";
@@ -23,7 +24,15 @@ app.use((req, res, next) => {
 });
 
 app.get("/health", (_req, res) => { res.json({ success: true, data: { status: "ok" } }); });
+const serveTestFile = (fileName: string) => (_req: express.Request, res: express.Response) => {
+  if (env.nodeEnv !== "development") { res.status(404).end(); return; }
+  res.sendFile(fileURLToPath(new URL(`../${fileName}`, import.meta.url)));
+};
+app.get("/test", serveTestFile("test.html"));
+app.get("/test.css", serveTestFile("test.css"));
+app.get("/test.js", serveTestFile("test.js"));
 app.use("/auth", authRouter);
+app.get("/auth/callback", serveTestFile("test.html"));
 app.use("/posts", postRouter);
 app.use("/posts", likeRouter);
 app.use(notFoundMiddleware);

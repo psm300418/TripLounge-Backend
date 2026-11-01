@@ -4,7 +4,7 @@ import type { LikePostParams } from "./like.schema.js";
 import { likeService } from "./like.service.js";
 
 export class LikeController {
-  // 게시글 좋아요 등록
+  // 게시글 좋아요 등록 요청
   likePost = async (_req: Request, res: Response): Promise<void> => {
     const { postId } = res.locals.params as LikePostParams;
     const { userId, supabase: userClient } = getAuth(res);
@@ -13,7 +13,7 @@ export class LikeController {
     res.status(204).send();
   };
 
-  // 게시글 좋아요 취소
+  // 게시글 좋아요 취소 요청
   unlikePost = async (_req: Request, res: Response): Promise<void> => {
     const { postId } = res.locals.params as LikePostParams;
     const { userId, supabase: userClient } = getAuth(res);
