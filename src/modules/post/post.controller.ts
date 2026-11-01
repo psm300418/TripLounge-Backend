@@ -23,7 +23,8 @@ export class PostController {
   // 이미지 업로드 요청
   uploadImage = async (req: Request, res: Response): Promise<void> => {
     const file = req.file;
-    const result = await postService.uploadImage(file);
+    const { supabase: userClient } = getAuth(res);
+    const result = await postService.uploadImage(file, userClient);
 
     res.status(201).json({
       success: true,

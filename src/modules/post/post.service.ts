@@ -29,7 +29,7 @@ export class PostService {
 
 
   // 이미지 업로드 + 사진 메타데이터 추출
-  async uploadImage(file?: Express.Multer.File): Promise<{
+  async uploadImage(file: Express.Multer.File | undefined, client?: SupabaseClient): Promise<{
   imageUrl: string;
   takenAt?: string;
   latitude?: number;
@@ -75,7 +75,8 @@ export class PostService {
     postRepository.uploadImageToStorage(
       uniqueFileName,
       file.buffer,
-      file.mimetype
+      file.mimetype,
+      client
     ),
     addressPromise,
   ]);
