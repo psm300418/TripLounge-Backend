@@ -10,6 +10,7 @@ import { postRouter } from "./modules/post/post.route.js";
 import { likeRouter } from "./modules/like/like.route.js";
 import { feedRouter } from "./modules/home-feed/feed/feed.route.js";
 import { notificationRouter } from "./modules/home-feed/notification/notification.route.js";
+import { profileRouter } from "./modules/profile-settings/profile/profile.route.js";
 export const app = express();
 app.disable("x-powered-by");
 app.use(cors({ origin: env.nodeEnv === "development" ? true : env.clientOrigin, credentials: true }));
@@ -40,6 +41,6 @@ app.use("/posts", postRouter);
 app.use("/posts", likeRouter);
 app.use("/posts", authMiddleware, feedRouter);
 app.use("/notifications", authMiddleware, notificationRouter);
-
+app.use("/users", authMiddleware, profileRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
