@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkDb } from "../../utils/database.js";
-import type { CommentListQuery, CommentPage } from "./comment.schema.js";
+import type { CommentListQuery, CommentPage, CommentReplyPage } from "./comment.schema.js";
 import { AppError } from "../../middlewares/error.middleware.js";
 
 export class CommentRepository {
@@ -31,12 +31,28 @@ export class CommentRepository {
     return data as CommentPage;
   }
 
+  // 최상위 댓글의 대댓글 조회
+  async findReplies(commentId: number, query: CommentListQuery, client: SupabaseClient) {
+    const { data, error } = await client.rpc("list_comment_replies", {
+      p_comment_id: commentId,
+      p_limit: query.limit,
+      p_offset: query.offset,
+    });
+
+    checkDb(error);
+    if (!data) {
+      throw new AppError(500, "COMMENT_REPLIES_FAILED", "대댓글을 불러오지 못했습니다.");
+    }
+    return data as CommentReplyPage;
+  }
+
   // 댓글 저장
-  async create(postId: number, userId: string, content: string, client: SupabaseClient) {
+  async create(postId: number, userId: string, content: string, parentCommentId: number | undefined, client: SupabaseClient) {
     const { data, error } = await client.rpc("create_post_comment", {
       p_post_id: postId,
       p_user_id: userId,
       p_content: content,
+      p_parent_comment_id: parentCommentId ?? null,
     });
 
     checkDb(error);
@@ -61,8 +77,8 @@ export class CommentRepository {
   }
 
   // 작성자 본인의 댓글을 삭제
-  async softDelete(commentId: number, userId: string, client: SupabaseClient): Promise<boolean> {
-    const { data, error } = await client.rpc("soft_delete_post_comment", {
+  async delete(commentId: number, userId: string, client: SupabaseClient): Promise<boolean> {
+    const { data, error } = await client.rpc("delete_post_comment", {
       p_comment_id: commentId,
       p_user_id: userId,
     });

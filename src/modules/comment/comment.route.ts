@@ -21,6 +21,14 @@ commentRouter.get(
   asyncHandler(commentController.getComments)
 );
 
+// 최상위 댓글의 대댓글 목록
+commentRouter.get(
+  "/comments/:commentId/replies",
+  authMiddleware,
+  validate({ params: commentParamsSchema, query: commentListQuerySchema }),
+  asyncHandler(commentController.getReplies)
+);
+
 // 댓글 작성
 commentRouter.post(
   "/posts/:postId/comments",

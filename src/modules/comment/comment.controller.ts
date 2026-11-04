@@ -18,13 +18,23 @@ export class CommentController {
     res.status(200).json({ success: true, data: comments });
   };
 
+  // 최상위 댓글의 대댓글 조회
+  getReplies = async (_req: Request, res: Response): Promise<void> => {
+    const { commentId } = res.locals.params as { commentId: number };
+    const query = res.locals.query as CommentListQuery;
+    const { supabase: userClient } = getAuth(res);
+
+    const replies = await commentService.getReplies(commentId, query, userClient);
+    res.status(200).json({ success: true, data: replies });
+  };
+
   // 댓글 작성
   createComment = async (req: Request, res: Response): Promise<void> => {
     const { postId } = res.locals.params as { postId: number };
-    const { content } = req.body as CreateCommentInput;
+    const input = req.body as CreateCommentInput;
     const { userId, supabase: userClient } = getAuth(res);
 
-    const comment = await commentService.createComment(postId, userId, content, userClient);
+    const comment = await commentService.createComment(postId, userId, input, userClient);
     res.status(201).json({ success: true, data: comment });
   };
 
