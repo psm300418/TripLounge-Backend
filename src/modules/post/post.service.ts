@@ -6,6 +6,7 @@ import { AppError } from "../../middlewares/error.middleware.js";
 import type { CreatePostInput, UpdatePostInput } from "./post.schema.js";
 import { findRoadAddress } from "./post.geocoding.js";
 import { likeService } from "../like/like.service.js";
+import { commentService } from "../comment/comment.service.js";
 
 export class PostService {
 
@@ -94,9 +95,12 @@ export class PostService {
       throw new AppError(404, "POST_NOT_FOUND", "게시글을 찾을 수 없습니다.");
     }
 
-    const likeSummary = await likeService.getLikeSummary(postId, userId, client);
+    const [likeSummary, commentCount] = await Promise.all([
+      likeService.getLikeSummary(postId, userId, client),
+      commentService.countComments(postId, client),
+    ]);
 
-    return { ...post, ...likeSummary };
+    return { ...post, ...likeSummary, commentCount };
   }
 
 
