@@ -12,11 +12,13 @@ export class FriendRepository {
     checkDb(error); return data as unknown;
   }
   async requests(input: FriendRequestQuery) {
-    const field = input.direction === "RECEIVED" ? "receiver_id" : "sender_id";
-    const { data, error, count } = await this.supabase.from("friend_requests").select("*", { count: "exact" })
-      .eq(field, this.userId).eq("status", input.status).order("created_at", { ascending: false }).order("id")
-      .range((input.page - 1) * input.limit, input.page * input.limit - 1);
-    checkDb(error); return { items: data as unknown, total: count, page: input.page, limit: input.limit };
+    const { data, error } = await this.supabase.rpc("list_friend_requests", {
+      p_direction: input.direction, p_status: input.status,
+      p_limit: input.limit, p_offset: (input.page - 1) * input.limit,
+    });
+    checkDb(error);
+    const result = data as { items: unknown[]; total: number };
+    return { items: result.items, total: result.total, page: input.page, limit: input.limit };
   }
   async createRequest(friendCode: string) {
     const { data, error } = await this.supabase.rpc("create_friend_request", { p_friend_code: friendCode });
