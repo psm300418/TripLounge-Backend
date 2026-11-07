@@ -1,41 +1,6 @@
 import { Router } from "express";
 import { postController } from "./post.controller.js";
-import { createPostSchema, updatePostSchema } from "./post.schema.js";
-import { validate } from "../../middlewares/validate.middleware.js";
-import { upload } from "../../middlewares/upload.middleware.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
 export const postRouter = Router();
-
-// POST 요청 /posts (게시글 작성)
-postRouter.post(
-  "/",
-  validate({ body: createPostSchema }),  
-  asyncHandler(postController.createPost) 
-);
-
-// POST 요청 /posts/images (이미지 단건 업로드)
-postRouter.post(
-  "/images",
-  upload.single("image"),         
-  asyncHandler(postController.uploadImage)
-);
-
-// GET 요청 /posts/:id (게시글 조회)
-postRouter.get(
-  "/:id",
-  asyncHandler(postController.getPost)
-);
-
-// DELETE 요청 /posts/:id (게시글 삭제)
-postRouter.delete(
-  "/:id",
-  asyncHandler(postController.deletePost)
-);
-
-// PATCH 요청 /posts/:id (게시글 수정)
-postRouter.patch(
-  "/:id",
-  validate({ body: updatePostSchema }),
-  asyncHandler(postController.updatePost)
-);
+postRouter.get("/:id", asyncHandler(postController.getPost));
