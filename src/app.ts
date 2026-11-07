@@ -13,6 +13,7 @@ import { notificationRouter } from "./modules/home-feed/notification/notificatio
 import { profileRouter } from "./modules/profile-settings/profile/profile.route.js";
 import { friendRouter, friendRequestRouter } from "./modules/friend-mate/friend.route.js";
 import { commentRouter } from "./modules/comment/comment.route.js";
+import { sharedPostRouter } from "./modules/shared-post/post.route.js";
 export const app = express();
 app.disable("x-powered-by");
 app.use(cors({ origin: env.nodeEnv === "development" ? true : env.clientOrigin, credentials: true }));
@@ -39,6 +40,7 @@ app.get("/test.css", serveTestFile("test/test.css"));
 app.get("/test.js", serveTestFile("test/test.js"));
 app.use("/auth", authRouter);
 app.get("/auth/callback", serveTestFile("test/test.html"));
+app.use("/shared/posts", sharedPostRouter);
 app.use("/posts", postRouter);
 app.use("/posts", likeRouter);
 app.use("/posts", authMiddleware, feedRouter);
