@@ -1,0 +1,11 @@
+import { Router } from "express";
+import { validate } from "../../../middlewares/validate.middleware.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { profileController } from "./profile.controller.js";
+import { updateProfileSchema } from "./profile.schema.js";
+import { receiveAvatar } from "./avatar.middleware.js";
+import { changeAvatar } from "./avatar.controller.js";
+export const profileRouter = Router();
+profileRouter.post("/me/avatar", receiveAvatar, asyncHandler(changeAvatar));
+profileRouter.get("/me", asyncHandler(profileController.getMe));
+profileRouter.patch("/me", validate({ body: updateProfileSchema }), asyncHandler(profileController.updateMe));
