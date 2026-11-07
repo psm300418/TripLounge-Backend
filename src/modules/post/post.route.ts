@@ -24,13 +24,6 @@ postRouter.post(
   asyncHandler(postController.uploadImage)
 );
 
-// GET 요청 /posts/:id (게시글 조회)
-postRouter.get(
-  "/:id",
-  authMiddleware,
-  asyncHandler(postController.getPost)
-);
-
 // DELETE 요청 /posts/:id (게시글 삭제)
 postRouter.delete(
   "/:id",
