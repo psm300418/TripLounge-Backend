@@ -1,0 +1,15 @@
+import { Router } from "express";
+import { validate } from "../../middlewares/validate.middleware.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { uuidIdSchema } from "../../utils/schema.js";
+import { rateLimit } from "../../middlewares/rateLimit.middleware.js";
+import { friendController } from "./friend.controller.js";
+import { friendQuerySchema, friendRequestQuerySchema, createFriendRequestSchema, respondFriendRequestSchema } from "./friend.schema.js";
+export const friendRouter = Router();
+export const friendRequestRouter = Router();
+friendRouter.get("/code", asyncHandler(friendController.code));
+friendRouter.get("/", validate({ query: friendQuerySchema }), asyncHandler(friendController.list));
+friendRouter.delete("/:id", validate({ params: uuidIdSchema }), asyncHandler(friendController.remove));
+friendRequestRouter.get("/", validate({ query: friendRequestQuerySchema }), asyncHandler(friendController.requests));
+friendRequestRouter.post("/", rateLimit(20, 60000, true), validate({ body: createFriendRequestSchema }), asyncHandler(friendController.createRequest));
+friendRequestRouter.patch("/:id", validate({ params: uuidIdSchema, body: respondFriendRequestSchema }), asyncHandler(friendController.respond));
